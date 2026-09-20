@@ -1,11 +1,20 @@
-.PHONY: setup pipeline dashboard
+PYTHON ?= python3
+VENV := .venv
+VENV_PYTHON := $(VENV)/bin/python
+
+.PHONY: setup pipeline test dashboard
 
 setup:
-	python -m pip install -r requirements.txt
+	$(PYTHON) -m venv $(VENV)
+	$(VENV_PYTHON) -m pip install -r requirements.txt
 
 pipeline:
-	python load_data.py
-	python analysis.py
+	$(VENV_PYTHON) load_data.py
+	$(VENV_PYTHON) analysis.py
+	$(VENV_PYTHON) -m pytest -q
+
+test:
+	$(VENV_PYTHON) -m pytest -q
 
 dashboard:
-	streamlit run dashboard.py --server.address=0.0.0.0
+	$(VENV_PYTHON) -m streamlit run dashboard.py --server.address=0.0.0.0
