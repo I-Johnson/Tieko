@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+cell_counts.db
+cell_counts.tmp.db
+.streamlit/secrets.toml
