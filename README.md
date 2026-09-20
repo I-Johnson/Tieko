@@ -12,7 +12,7 @@ make pipeline
 make dashboard
 ```
 
-The dashboard runs at `http://localhost:8501`. In GitHub Codespaces, open the forwarded port link.
+The dashboard runs at `[johnsonteiko](https://johnsontieko.streamlit.app/)`. In GitHub Codespaces, open the forwarded port link.
 
 ## Main files
 
