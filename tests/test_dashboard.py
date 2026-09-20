@@ -5,6 +5,8 @@ import sqlite3
 import pytest
 from streamlit.testing.v1 import AppTest
 
+import analysis as analysis_module
+import load_data as load_data_module
 from analysis import run_data_quality_checks, run_part4_queries, run_responder_analysis, store_results
 from src import config, database
 
@@ -23,29 +25,34 @@ def test_dashboard_handles_database_versions(db, tmp_path, monkeypatch, missing)
         db.execute(f'DROP TABLE "{table}"')
     db.commit()
     path = tmp_path / "dashboard.db"
+    temp_path = tmp_path / "dashboard.tmp.db"
     with sqlite3.connect(path) as destination:
         db.backup(destination)
     monkeypatch.setattr(config, "DATABASE_PATH", path)
+    monkeypatch.setattr(config, "TEMP_DATABASE_PATH", temp_path)
     monkeypatch.setattr(database, "DATABASE_PATH", path)
+    monkeypatch.setattr(analysis_module, "DATABASE_PATH", path)
+    monkeypatch.setattr(load_data_module, "DATABASE_PATH", path)
+    monkeypatch.setattr(load_data_module, "TEMP_DATABASE_PATH", temp_path)
 
     app = AppTest.from_file(str(config.ROOT / "dashboard.py")).run(timeout=30)
     assert not app.exception
-    if missing:
-        assert len(app.error) == 1
-        assert "make pipeline" in app.error[0].value
-        assert all(table in app.error[0].value for table in missing)
-        assert not app.tabs
-    else:
-        assert not app.error
-        assert len(app.tabs) == 3
+    assert not app.error
+    assert len(app.tabs) == 3
+    assert path.exists()
 
 
 def test_dashboard_handles_missing_database(tmp_path, monkeypatch):
     path = tmp_path / "missing.db"
+    temp_path = tmp_path / "missing.tmp.db"
     monkeypatch.setattr(config, "DATABASE_PATH", path)
+    monkeypatch.setattr(config, "TEMP_DATABASE_PATH", temp_path)
     monkeypatch.setattr(database, "DATABASE_PATH", path)
+    monkeypatch.setattr(analysis_module, "DATABASE_PATH", path)
+    monkeypatch.setattr(load_data_module, "DATABASE_PATH", path)
+    monkeypatch.setattr(load_data_module, "TEMP_DATABASE_PATH", temp_path)
     app = AppTest.from_file(str(config.ROOT / "dashboard.py")).run(timeout=30)
     assert not app.exception
-    assert "make pipeline" in app.error[0].value
-    assert not app.tabs
-    assert not path.exists()
+    assert not app.error
+    assert len(app.tabs) == 3
+    assert path.exists()
